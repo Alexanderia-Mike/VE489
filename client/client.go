@@ -18,12 +18,15 @@ var port = flag.Int("p", 8002, "Server Port")
 func main() {
 	flag.Parse()
 
+	// read the file
 	data, err := ioutil.ReadFile("../shakespeare.txt")
-	if err != nil {
+	if err != nil
+	{
 		fmt.Println("ReadFile error:", err)
 		return
 	}
 
+	// connect with the server
 	conn, err := net.Dial("udp", fmt.Sprintf("%s:%d", *ip, *port))
 	if err != nil {
 		fmt.Println("net.Dial err:", err)
@@ -33,38 +36,52 @@ func main() {
 
 	fmt.Println("Dial complete")
 
+	// send the file content in a loop
 	txSeqNum, count := false, 0
-	for i := 0; i < len(data); i++ {
+	for i := 0; i < len(data); i++
+	{
 		// _, err = conn.Write([]byte(fmt.Sprintf("Message%d", Bool2Int(txSeqNum))))
 		msg := make([]byte, 2)
 		msg[0], msg[1] = data[i], Bool2Byte(txSeqNum)
 
-		_, err = conn.Write([]byte(string(data[i])))
+		// send one message = one byte + ack
+		_, err = conn.Write([]byte(string(msg)))
 		if err != nil {
 			fmt.Println("conn.Write err:", err)
 		}
 		fmt.Printf("Sent Message %d (Seq: %d)\n", count, Bool2Int(txSeqNum))
 
 		err = conn.SetReadDeadline(time.Now().Add(1500 * time.Millisecond))
-		if err != nil {
+		if err != nil
+		{
 			fmt.Println("conn.SetReadDeadline err:", err)
 		}
 
+		// read the ack
 		buf := make([]byte, 1024)
 		n, err := conn.Read(buf)
-		if err != nil {
-			if errors.Is(err, os.ErrDeadlineExceeded) {
+
+		// if timeout, resend the ack
+		if err != nil
+		{
+			if errors.Is(err, os.ErrDeadlineExceeded)
+			{
 				fmt.Printf("Waiting for ACK timeout, will resend Message %d (Seq: %d)\n", count, Bool2Int(txSeqNum))
-			} else {
+				i --
+			}
+			else
+			{
 				return
 			}
-		} else {
+		}
+		else
+		{
 			fmt.Println("Received from Server:", string(buf[:n]))
 			count++
 			txSeqNum = !txSeqNum
 		}
 
-		// time.Sleep(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	fmt.Println("Client exits")
