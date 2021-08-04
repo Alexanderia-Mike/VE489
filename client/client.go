@@ -12,7 +12,7 @@ import (
 )
 
 var num = flag.Int("n", 20, "Input how many times")
-var ip = flag.String("i", "10.3.39.2", "Server IP")
+var ip = flag.String("i", "10.3.63.2", "Server IP")
 var port = flag.Int("p", 8002, "Server Port")
 
 func main() {
