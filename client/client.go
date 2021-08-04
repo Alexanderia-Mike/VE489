@@ -20,8 +20,7 @@ func main() {
 
 	// read the file
 	data, err := ioutil.ReadFile("../shakespeare.txt")
-	if err != nil
-	{
+	if err != nil {
 		fmt.Println("ReadFile error:", err)
 		return
 	}
@@ -38,8 +37,7 @@ func main() {
 
 	// send the file content in a loop
 	txSeqNum, count := false, 0
-	for i := 0; i < len(data); i++
-	{
+	for i := 0; i < len(data); i++ {
 		// _, err = conn.Write([]byte(fmt.Sprintf("Message%d", Bool2Int(txSeqNum))))
 		msg := make([]byte, 2)
 		msg[0], msg[1] = data[i], Bool2Byte(txSeqNum)
@@ -52,8 +50,7 @@ func main() {
 		fmt.Printf("Sent Message %d (Seq: %d)\n", count, Bool2Int(txSeqNum))
 
 		err = conn.SetReadDeadline(time.Now().Add(1500 * time.Millisecond))
-		if err != nil
-		{
+		if err != nil {
 			fmt.Println("conn.SetReadDeadline err:", err)
 		}
 
@@ -62,20 +59,14 @@ func main() {
 		n, err := conn.Read(buf)
 
 		// if timeout, resend the ack
-		if err != nil
-		{
-			if errors.Is(err, os.ErrDeadlineExceeded)
-			{
+		if err != nil {
+			if errors.Is(err, os.ErrDeadlineExceeded) {
 				fmt.Printf("Waiting for ACK timeout, will resend Message %d (Seq: %d)\n", count, Bool2Int(txSeqNum))
 				i --
-			}
-			else
-			{
+			} else {
 				return
 			}
-		}
-		else
-		{
+		} else {
 			fmt.Println("Received from Server:", string(buf[:n]))
 			count++
 			txSeqNum = !txSeqNum
